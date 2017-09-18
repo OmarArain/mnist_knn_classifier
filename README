@@ -1,0 +1,72 @@
+Course Project - MPCS 51040 - Optical Character Recognition
+Omar Arain
+Dec 9th, 2016
+
+References:
+ - http://stats.stackexchange.com/questions/219655k-nn-computational-complexity
+ - https://en.wikipedia.org/wiki/Quickselect
+
+To properly run the test_mnist, create a data/ directory in the project folder
+and place the uncompressed t10k and train image data files in it. Otherwise the tests will fail.
+Discussion of design choices
+============================
+
+KNN
+=========
+To assist in the K-nearest neighbors calculations, I created a data structure 
+called knn_data, which contains:
+  - the mnist_image_handle of the test image
+  - the mnist_dataset_handle of the training dataset
+  - the calculated distances between the test image and each training image
+  - the labels of the training images
+  - the minimum distances between the test image and of the closest image for each label
+
+I only calculate the distances once for each combination of test image and 
+training set, using knn_get_distances.  This procedure populates the 
+distances, labels and minimum distances in a knn_data struct.  I calculate 
+the minimum distances in order to break ties in the case that there are 
+multiple labels with the same number of closest neighbors.  If an image is 
+the exact same distance from all the k-nearest neighbor labels that have 
+plurality, the algorithm returns the FIRST of those label that occurs in 
+the dataset.
+
+QUICKSELECT
+============
+I implemented the K-nearest neighbors algorithm by using the Quickselect 
+algorithm; I got the idea from the references I listed above. The Quickselect 
+algorithm is able to get the k-th smallest element from an unsorted list in 
+O(N) on average, and O(N^2) in worst case.  In order to implement the 
+Quickselect algorithm, I also had to make an ancillary algorithm called 
+Partition, which given a pivot value, will move everything less than 
+pivot_value to the left of the list and everything greater to the right. 
+My implementation of Quickselect is 0-indexed, meaning if you want the 
+smallest value you would set k=0, and for the second smallest value you would 
+set k=1, etc.
+
+Since the Quickselect algorithm sorts the list of distances, I had to modify 
+it to sort the list of labels at the same time so I could easily find the 
+labels of all the images with smaller than k-th smallest distance (i.e. the 
+first k labels in the sorted labels list).
+
+Testing the k-nearest neighbor algorithm was challenging - I created a 
+number of test datasets whose sum of pixel values had a relationship with the 
+label value.  This way I could easily create and test a number of scenarios.
+
+RESERVOIR SAMPLING
+==================
+In order to implement mnist_create_sample, I used the an algorithm I used in 
+a previous homework called the Fisher-Yates shuffle, which randomizes an
+array in O(N) time. I had used in a previous homework.  I also created a
+small algorithm that returns a TRUE uniform pseudo-random number over a 
+range, as opposed to simply using rand()%range (which can have bias). I did 
+consult stackoverflow.com for the _uniform_rand_int algorithm, but I cannot 
+find the exact link that I used.
+
+DISTANCE FUNCTIONS
+==================
+I only implemented two distance functions (euclid and reduced). I maintain a 
+number of macros in distance.h that can be used to determine the number of 
+functions that are implemented, which functions are implemented, and their 
+descriptions.  Any time a new distance function is added, these macros need 
+to be updated, along with the factory function.
+
